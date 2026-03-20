@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Binh Chon Mau Ao Hoi Thao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-shape shape-1"></div>
+    <div class="background-shape shape-2"></div>
+
+    <main class="container">
+      <header class="hero">
+        <p class="eyebrow">Nhom Xa Hoi - NTC Da Lat</p>
+        <h1>Binh Chon Mau Ao Hoi Thao</h1>
+        <p class="subtitle">
+          Moi IP chi duoc binh chon 1 mau. Muon doi mau khac thi bo binh chon mau hien tai.
+        </p>
+      </header>
+
+      <section class="panel stats-panel">
+        <div>
+          <p class="label">So mau duoc chon</p>
+          <p id="selected-count" class="value">0</p>
+        </div>
+        <div>
+          <p class="label">Tong luot binh chon</p>
+          <p id="total-votes" class="value">0</p>
+        </div>
+      </section>
+
+      <section class="panel vote-panel">
+        <h2>Binh chon cua ban</h2>
+        <p id="vote-status" class="vote-status">Ban chua binh chon mau nao.</p>
+        <div id="my-vote-preview" class="my-vote-preview empty">Chua co mau nao duoc binh chon boi IP nay.</div>
+      </section>
+
+      <section class="panel top-panel">
+        <h2>Top binh chon</h2>
+        <div id="top-result" class="top-result">Chua co luot binh chon nao.</div>
+      </section>
+
+      <section class="panel selection-panel">
+        <h2>Mau dang chon</h2>
+        <div id="selected-preview" class="selected-preview empty">
+          Chua chon mau nao
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Danh sach mau ao</h2>
+        <div id="gallery" class="gallery"></div>
+      </section>
+    </main>
+
+    <template id="card-template">
+      <article class="card">
+        <button class="image-btn" type="button">
+          <img alt="Mau ao" loading="lazy" />
+        </button>
+        <div class="card-body">
+          <p class="name"></p>
+          <div class="actions">
+            <button class="vote-btn" type="button">Binh chon</button>
+            <span class="vote-count">0 luot</span>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>

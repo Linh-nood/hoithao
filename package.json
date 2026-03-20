@@ -1,0 +1,13 @@
+{
+  "name": "ao-hoi-thao-voting-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App xem va binh chon mau ao hoi thao",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
