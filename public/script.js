@@ -11,6 +11,34 @@ let images = [];
 const selectedIds = new Set();
 let myVoteImageId = null;
 
+function getVoterId() {
+  const key = "voter_id";
+  const existing = localStorage.getItem(key);
+  if (existing) {
+    return existing;
+  }
+
+  const created =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `voter_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+  localStorage.setItem(key, created);
+  return created;
+}
+
+function getApiHeaders(includeJson = false) {
+  const headers = {
+    "X-Voter-Id": getVoterId(),
+  };
+
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
+}
+
 function truncateName(name) {
   return name.length > 32 ? `${name.slice(0, 32)}...` : name;
 }
@@ -122,9 +150,7 @@ function updateTopResult() {
 async function voteImage(imageId) {
   const response = await fetch("/api/vote", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(true),
     body: JSON.stringify({ imageId }),
   });
 
@@ -144,6 +170,7 @@ async function voteImage(imageId) {
 async function unvoteImage() {
   const response = await fetch("/api/vote", {
     method: "DELETE",
+    headers: getApiHeaders(),
   });
 
   const payload = await response.json();
@@ -221,7 +248,9 @@ function renderGallery() {
 }
 
 async function init() {
-  const response = await fetch("/api/images");
+  const response = await fetch("/api/images", {
+    headers: getApiHeaders(),
+  });
   if (!response.ok) {
     throw new Error("Khong the tai danh sach hinh anh.");
   }

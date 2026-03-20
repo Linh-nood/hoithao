@@ -60,6 +60,22 @@ function getClientIp(req) {
   return normalizeIp(req.ip);
 }
 
+function sanitizeVoterId(raw) {
+  if (typeof raw !== "string") return "";
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > 120) return "";
+  if (!/^[a-zA-Z0-9._-]+$/.test(trimmed)) return "";
+  return trimmed;
+}
+
+function getVoterKey(req) {
+  const fromHeader = sanitizeVoterId(req.get("x-voter-id"));
+  if (fromHeader) return `device:${fromHeader}`;
+
+  const clientIp = getClientIp(req);
+  return `ip:${clientIp}`;
+}
+
 function isImageFile(fileName) {
   return /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName);
 }
@@ -93,7 +109,7 @@ async function getVoteStats() {
 }
 
 async function getTotalVotes() {
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from("votes")
     .select("*", { count: "exact", head: true });
 
@@ -102,7 +118,7 @@ async function getTotalVotes() {
     return 0;
   }
 
-  return data ? (Array.isArray(data) ? data.length : 0) : 0;
+  return Number.isInteger(count) ? count : 0;
 }
 
 async function getTopVoted(images) {
@@ -155,13 +171,13 @@ app.get("/api/images", async (req, res) => {
       votes: voteStats[fileName] || 0,
     }));
 
-    const clientIp = getClientIp(req);
+    const voterKey = getVoterKey(req);
 
-    // Lấy vote hiện tại của IP này
+    // Lay vote hien tai cua nguoi dung nay (uu tien device id, fallback IP)
     const { data: myVote } = await supabase
       .from("votes")
       .select("image_id")
-      .eq("ip_address", clientIp)
+      .eq("ip_address", voterKey)
       .single();
 
     const myVoteImageId = myVote ? myVote.image_id : null;
@@ -192,19 +208,19 @@ app.post("/api/vote", async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy mẫu áo." });
     }
 
-    const clientIp = getClientIp(req);
+    const voterKey = getVoterKey(req);
 
-    // Kiểm tra IP đã bình chọn chưa
+    // Kiem tra nguoi dung nay da binh chon chua
     const { data: existingVote } = await supabase
       .from("votes")
       .select("image_id")
-      .eq("ip_address", clientIp)
+      .eq("ip_address", voterKey)
       .single();
 
     if (existingVote && existingVote.image_id !== imageId) {
       return res.status(409).json({
         message:
-          "IP này đã bình chọn mẫu khác. Hãy bỏ bình chọn trước.",
+          "Ban da binh chon mau khac. Hay bo binh chon truoc.",
         myVoteImageId: existingVote.image_id,
       });
     }
@@ -223,7 +239,7 @@ app.post("/api/vote", async (req, res) => {
     const { error } = await supabase.from("votes").insert([
       {
         image_id: imageId,
-        ip_address: clientIp,
+        ip_address: voterKey,
       },
     ]);
 
@@ -248,13 +264,13 @@ app.post("/api/vote", async (req, res) => {
 
 app.delete("/api/vote", async (req, res) => {
   try {
-    const clientIp = getClientIp(req);
+    const voterKey = getVoterKey(req);
 
-    // Tìm vote hiện tại của IP
+    // Tim vote hien tai cua nguoi dung nay
     const { data: currentVote } = await supabase
       .from("votes")
       .select("image_id")
-      .eq("ip_address", clientIp)
+      .eq("ip_address", voterKey)
       .single();
 
     if (!currentVote) {
@@ -267,7 +283,7 @@ app.delete("/api/vote", async (req, res) => {
     const { error } = await supabase
       .from("votes")
       .delete()
-      .eq("ip_address", clientIp);
+      .eq("ip_address", voterKey);
 
     if (error) {
       throw error;
@@ -290,13 +306,13 @@ app.get("/api/top-voted", async (req, res) => {
   try {
     const files = await getImageFiles();
     const { top, winners } = await getTopVoted(files);
-    const clientIp = getClientIp(req);
+    const voterKey = getVoterKey(req);
 
-    // Lấy vote hiện tại của IP
+    // Lay vote hien tai cua nguoi dung nay
     const { data: myVote } = await supabase
       .from("votes")
       .select("image_id")
-      .eq("ip_address", clientIp)
+      .eq("ip_address", voterKey)
       .single();
 
     const myVoteImageId = myVote ? myVote.image_id : null;
